@@ -40,4 +40,11 @@ FactoryBot.define do
     result {result_hash[Faker::Number.within(range: 0..1)]}
     association :invoice, factory: :invoice
   end
+  
+  factory :bulk_discount, class: BulkDiscount do
+    name {Faker::Commerce.promotion_code(digits: 2)}
+    minimum_item_quantity {Faker::Number.within(range: 2..100)}
+    discount_percentage {Faker::Number.between(from: 0.05, to: 0.5).round(2)}
+    association :merchant, factory: :merchant
+  end
 end
