@@ -6,7 +6,7 @@ RSpec.describe 'Bulk Discount Index' do
     @merchant2 = create(:merchant)
     @merchant1_discounts = create_list(:bulk_discount, 2, merchant: @merchant1)
     @merchant2_discount = create(:bulk_discount, merchant: @merchant2)
-    visit "/merchants/#{@merchant1.id}/bulk_discounts"
+    visit merchant_bulk_discounts_path(@merchant1.id)
   end
   
   describe 'as a merchant' do
@@ -17,8 +17,8 @@ RSpec.describe 'Bulk Discount Index' do
         first_discount = @merchant1_discounts.first
         second_discount = @merchant1_discounts.last
         
-        expect(page).to have_content("Discount: #{first_discount.discount_percentage * 100}% --- Quantity Threshold: #{first_discount.minimum_item_quantity}")
-        expect(page).to have_content("Discount: #{second_discount.discount_percentage * 100}% --- Quantity Threshold: #{second_discount.minimum_item_quantity}")
+        expect(page).to have_content("Discount: #{(first_discount.discount_percentage * 100).truncate()}% --- Quantity Threshold: #{first_discount.minimum_item_quantity}")
+        expect(page).to have_content("Discount: #{(second_discount.discount_percentage * 100).truncate()}% --- Quantity Threshold: #{second_discount.minimum_item_quantity}")
         expect(page).to_not have_content("Discount: #{@merchant2_discount.discount_percentage}% --- Quantity Threshold: #{@merchant2_discount.minimum_item_quantity}")
         
         expect(page).to have_link(first_discount.name)
@@ -33,7 +33,7 @@ RSpec.describe 'Bulk Discount Index' do
         expect(page).to have_link("Create New Discount")
         click_link "Create New Discount"
         
-        expect(current_path).to eq("/merchants/#{@merchant1.id}/bulk_discounts/new")
+        expect(current_path).to eq(new_merchant_bulk_discount_path(@merchant1.id))
       end
 
     end

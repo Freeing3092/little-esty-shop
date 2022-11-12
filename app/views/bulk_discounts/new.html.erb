@@ -1,7 +1,7 @@
 <%= render partial: 'shared/navbar', locals: { merchant_name: @merchant.name }  %>
 
-<%= form_with url: "/merchants/#{@merchant.id}/bulk_discounts", method: :post do |f| %>
-  <%= f.label :discount_name, "Discount Name:" %>
+<%= form_with url: merchant_bulk_discounts_path(@merchant.id), method: :post do |f| %>
+  <%= f.label :name, "Discount Name:" %>
   <%= f.text_field :name %>
   <%= f.label :minimum_item_quantity, "Minimum Item Quantity" %>
   <%= f.number_field :minimum_item_quantity %>
