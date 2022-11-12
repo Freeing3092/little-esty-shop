@@ -42,7 +42,6 @@ group :development, :test do
   gem 'rspec-rails', '~> 4.0.1'
   gem 'launchy'
   gem 'orderly'
-  gem 'zombie_scout'
   
 end
 
