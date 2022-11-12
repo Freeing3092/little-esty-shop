@@ -1,0 +1,12 @@
+<%= render partial: 'shared/navbar', locals: { merchant_name: @merchant.name }  %>
+
+<div id="merchant-discounts">
+  <h3>Bulk Discounts:</h3>
+  <ul>
+    <% @merchant.bulk_discounts.each do |bulk_discount| %>
+      <li><%= "Discount: #{bulk_discount.discount_percentage * 100}% --- Quantity Threshold: #{bulk_discount.minimum_item_quantity}" %> 
+        <%= link_to "#{bulk_discount.name}", "/merchants/#{@merchant.id}/bulk_discounts/#{bulk_discount.id}"  %></li>
+    <% end %>
+  </ul>
+</div>
+  
