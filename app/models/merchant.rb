@@ -15,7 +15,7 @@ class Merchant < ApplicationRecord
   }
 
   def unique_invoices
-    invoices.distinct
+    invoices.distinct.order(:created_at)
   end
 
   def items_for_this_invoice(invoice_id)
