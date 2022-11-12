@@ -14,10 +14,18 @@ RSpec.describe 'Bulk Discount Show' do
   end
   
   describe 'as a merchant' do
-    it "Then I see the bulk discount's quantity threshold and percentage 
+    it "I see the bulk discount's quantity threshold and percentage 
     discount" do
       expect(page).to have_content("Discount: #{(@first_discount.discount_percentage * 100).truncate()}% --- Quantity Threshold: #{@first_discount.minimum_item_quantity}")
       expect(page).to_not have_content("Discount: #{(@second_discount.discount_percentage * 100).truncate()}% --- Quantity Threshold: #{@second_discount.minimum_item_quantity}")
+    end
+    it "I see a link to edit the bulk discount. When I click this link then I
+    am taken to a new page with a form to edit the discount" do
+      expect(page).to have_link("Edit #{@first_discount.name}")
+      
+      click_link "Edit #{@first_discount.name}"
+      
+      expect(current_path).to eq(edit_merchant_bulk_discount_path(@merchant1.id, @first_discount.id))
     end
   end
 end

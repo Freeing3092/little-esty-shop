@@ -24,6 +24,11 @@ class BulkDiscountsController < ApplicationController
     @bulk_discount = BulkDiscount.find(params[:id])
   end
   
+  def edit
+    @merchant = Merchant.find(params[:merchant_id])
+    @bulk_discount = BulkDiscount.find(params[:id])
+  end
+  
   private
   def bulk_discount_params
     params.permit(:name, :minimum_item_quantity, :discount_percentage, :merchant_id)
