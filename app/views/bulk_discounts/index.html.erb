@@ -7,7 +7,8 @@
   <ul>
     <% @merchant.bulk_discounts.each do |bulk_discount| %>
       <li><%= "Discount: #{number_with_precision(bulk_discount.discount_percentage * 100, precision: 0)}% --- Quantity Threshold: #{bulk_discount.minimum_item_quantity}" %> 
-        <%= link_to "#{bulk_discount.name}", "/merchants/#{@merchant.id}/bulk_discounts/#{bulk_discount.id}"  %></li>
+        <%= link_to "#{bulk_discount.name}", "/merchants/#{@merchant.id}/bulk_discounts/#{bulk_discount.id}"  %>
+        <%= link_to "Delete #{bulk_discount.name}", "/merchants/#{@merchant.id}/bulk_discounts/#{bulk_discount.id}", method: :delete%></li>
     <% end %>
   </ul>
 </div>
