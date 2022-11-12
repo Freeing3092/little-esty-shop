@@ -66,8 +66,8 @@ RSpec.describe 'Merchant Dashboard' do
         expect(page).to have_content("#{@item_1.name} Invoice ##{@customer1_invoice.id} - #{@customer1_invoice.created_at.strftime('%A, %B%e, %Y')}")
         expect(page).to have_content("#{@item_2.name} Invoice ##{@customer2_invoice.id} - #{@customer2_invoice.created_at.strftime('%A, %B%e, %Y')}")
 
-        first_link = find_link(@customer1_invoice.id)
-        second_link = find_link(@customer2_invoice.id)
+        first_link = find_link("#{@customer1_invoice.id}")
+        second_link = find_link("#{@customer2_invoice.id}")
         expect(first_link).to appear_before(second_link)
       end
 
