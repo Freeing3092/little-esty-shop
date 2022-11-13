@@ -1,0 +1,5 @@
+<%= render partial: 'shared/navbar', locals: { merchant_name: @merchant.name }  %>
+
+<h3><%= @bulk_discount.name %></h3>
+<p><%= "Discount: #{number_with_precision(@bulk_discount.discount_percentage * 100, precision: 0)}% --- Quantity Threshold: #{@bulk_discount.minimum_item_quantity}" %></p>
+<p><%= link_to "Edit #{@bulk_discount.name}", edit_merchant_bulk_discount_path(@merchant.id, @bulk_discount.id) %></p>

@@ -1,0 +1,11 @@
+<%= render partial: 'shared/navbar', locals: { merchant_name: @merchant.name }  %>
+
+<%= form_with url: merchant_bulk_discounts_path(@merchant.id), method: :post, local: true do |f| %>
+  <%= f.label :name, "Discount Name:" %>
+  <%= f.text_field :name %>
+  <%= f.label :minimum_item_quantity, "Minimum Item Quantity" %>
+  <%= f.number_field :minimum_item_quantity, min: 1 %>
+  <%= f.label :discount_percentage, "Discount Percentage as a decimal:" %>
+  <%= f.number_field :discount_percentage, in: 0.01..1, step: 0.01 %>
+  <%= f.submit "Submit" %>
+<% end %>
