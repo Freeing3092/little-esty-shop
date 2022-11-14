@@ -5,6 +5,8 @@ RSpec.describe InvoiceItem, type: :model do
   describe 'relationships' do
     it { should belong_to :invoice }
     it { should belong_to :item }
+    it { should have_one(:merchant).through(:item)}
+    it { should have_many(:bulk_discounts).through(:merchant)}
   end
 
   describe 'enums' do
@@ -23,18 +25,30 @@ RSpec.describe InvoiceItem, type: :model do
     @invoice1 = @mary.invoices.create!(status: 2)
     @invoice2 = @daniel.invoices.create!(status: 2)
     @invoice3 = @annie.invoices.create!(status: 2)
-    @invoiceitem1 = InvoiceItem.create!(item: @item1, invoice: @invoice1, quantity: 1, unit_price: @item1.unit_price, status: 0 )
+    @invoiceitem1 = InvoiceItem.create!(item: @item1, invoice: @invoice1, quantity: 7, unit_price: @item1.unit_price, status: 0 )
     @invoiceitem2 = InvoiceItem.create!(item: @item2, invoice: @invoice1, quantity: 1, unit_price: @item2.unit_price, status: 0 )
-    @invoiceitem3 = InvoiceItem.create!(item: @item1, invoice: @invoice2, quantity: 1, unit_price: @item1.unit_price, status: 0 )
+    @invoiceitem3 = InvoiceItem.create!(item: @item1, invoice: @invoice2, quantity: 12, unit_price: @item1.unit_price, status: 0 )
     @invoiceitem4 = InvoiceItem.create!(item: @item3, invoice: @invoice3, quantity: 1, unit_price: @item3.unit_price, status: 0 )
   end
 
-  describe 'model methods' do
+  describe 'instance methods' do
     describe '#item_name' do
       it 'returns the name of an invoice_item item' do
         expect(@invoiceitem1.item_name).to eq(@item1.name)
         expect(@invoiceitem2.item_name).to eq(@item2.name)
         expect(@invoiceitem3.item_name).to eq(@item1.name)
+      end
+    end
+    describe '#best_available_discount' do
+      it "returns the best bulk_discount given the item quantity. If no
+      discounts are available, returns nil" do
+        discount1 = create(:bulk_discount, minimum_item_quantity: 5, discount_percentage: 0.1, merchant_id: @merchant1.id)
+        discount2 = create(:bulk_discount, minimum_item_quantity: 10, discount_percentage: 0.2, merchant_id: @merchant1.id)
+        discount3 = create(:bulk_discount, minimum_item_quantity: 2, discount_percentage: 0.3, merchant_id: @merchant2.id)
+        
+        expect(@invoiceitem1.best_available_discount).to eq(discount1)
+        expect(@invoiceitem3.best_available_discount).to eq(discount2)
+        expect(@invoiceitem4.best_available_discount).to eq(nil)
       end
     end
   end
