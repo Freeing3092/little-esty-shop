@@ -18,7 +18,10 @@ RSpec.describe 'the merchant invoices show page' do
     @invoiceitem3 = InvoiceItem.create!(item: @item1, invoice: @invoice2, quantity: 1, unit_price: @item1.unit_price, status: 0 )
     @invoiceitem4 = InvoiceItem.create!(item: @item3, invoice: @invoice3, quantity: 1, unit_price: @item3.unit_price, status: 0 )
     @invoiceitem5 = InvoiceItem.create!(item: @item3, invoice: @invoice1, quantity: 1, unit_price: @item1.unit_price, status: 0 )
-
+    @invoiceitem6 = InvoiceItem.create!(item: @item3, invoice: @invoice1, quantity: 2, unit_price: @item1.unit_price, status: 0 )
+    
+    @merchant1_discount1 = create(:bulk_discount, minimum_item_quantity: 2, discount_percentage: 0.1, merchant: @merchant1)
+    @merchant2_discount = create(:bulk_discount, minimum_item_quantity: 2, discount_percentage: 0.2, merchant: @merchant2)
   end
 
   it 'displays the id/status/date/customer name related to the invoice' do
@@ -79,6 +82,19 @@ RSpec.describe 'the merchant invoices show page' do
 
       expect(current_path).to eq("/merchants/#{@merchant1.id}/invoices/#{@invoice1.id}")
       expect(page).to have_content(@invoiceitem1.status)
+    end
+  end
+  it "Next to each invoice item I see a link to the show page for the bulk
+  discount that was applied (if any)" do
+    visit "/merchants/#{@merchant1.id}/invoices/#{@invoice1.id}"
+    
+    within "#invoice_item_#{@invoiceitem2.id}" do
+      expect(page).to have_link(@merchant1_discount1.name)
+    end
+    
+    within "#invoice_item_#{@invoiceitem1.id}" do
+      expect(page).to_not have_link(@merchant1_discount1.name)
+      expect(page).to have_content("N/A")
     end
   end
 end
