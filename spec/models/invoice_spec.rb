@@ -71,6 +71,9 @@ RSpec.describe Invoice, type: :model do
         @invoice_item_4 = InvoiceItem.create!(item_id: @item_4.id, invoice_id: @invoice_5.id, quantity: 44567, unit_price: 45, status: 2)
         @invoice_item_5 = InvoiceItem.create!(item_id: @item_5.id, invoice_id: @invoice_5.id, quantity: 1, unit_price: 10000000, status: 2)
         @invoice_item_6 = InvoiceItem.create!(item_id: @item_6.id, invoice_id: @invoice_6.id, quantity: 738, unit_price: 90999, status: 2)
+        @discount1 = create(:bulk_discount, minimum_item_quantity: 250, discount_percentage: 0.1, merchant_id: @merchant_1.id)
+        @discount2 = create(:bulk_discount, minimum_item_quantity: 700, discount_percentage: 0.2, merchant_id: @merchant_1.id)
+        @discount3 = create(:bulk_discount, minimum_item_quantity: 500, discount_percentage: 0.3, merchant_id: @merchant_2.id)
       end
       
       it "returns a list of all unique invoices that have items that have not been shipped from newest to oldest based on when
@@ -93,25 +96,21 @@ RSpec.describe Invoice, type: :model do
       describe 'total_discount' do
         it "returns the total discount applied for all items that qualify for
         a discount on an invoice." do
-          discount1 = create(:bulk_discount, minimum_item_quantity: 250, discount_percentage: 0.1, merchant_id: @merchant_1.id)
-          discount2 = create(:bulk_discount, minimum_item_quantity: 700, discount_percentage: 0.2, merchant_id: @merchant_1.id)
-          discount3 = create(:bulk_discount, minimum_item_quantity: 500, discount_percentage: 0.3, merchant_id: @merchant_2.id)
-          total_disc = ([@invoice_item_1.quantity * @invoice_item_1.unit_price * discount2.discount_percentage, 
-            @invoice_item_3.quantity * @invoice_item_3.unit_price * discount3.discount_percentage]).sum
+          total_disc = ([@invoice_item_1.quantity * @invoice_item_1.unit_price * @discount2.discount_percentage, 
+            @invoice_item_3.quantity * @invoice_item_3.unit_price * @discount3.discount_percentage]).sum
           expect(@invoice_4.total_discount).to eq(total_disc)
         end
       end
       
       describe 'discounted_revenue' do
         it "returns the total_revenue of an invoice less the total_discount" do
-          discount2 = create(:bulk_discount, minimum_item_quantity: 700, discount_percentage: 0.2, merchant_id: @merchant_1.id)
-          discount3 = create(:bulk_discount, minimum_item_quantity: 500, discount_percentage: 0.3, merchant_id: @merchant_2.id)
-          total_disc = ([@invoice_item_1.quantity * @invoice_item_1.unit_price * discount2.discount_percentage, 
-            @invoice_item_3.quantity * @invoice_item_3.unit_price * discount3.discount_percentage]).sum
+          total_disc = ([@invoice_item_1.quantity * @invoice_item_1.unit_price * @discount2.discount_percentage, 
+            @invoice_item_3.quantity * @invoice_item_3.unit_price * @discount3.discount_percentage]).sum
           total_rev = ([@invoice_item_1.quantity * @invoice_item_1.unit_price, 
             @invoice_item_2.quantity * @invoice_item_2.unit_price,
             @invoice_item_3.quantity * @invoice_item_3.unit_price]).sum
-            expect(@invoice_4.discounted_revenue).to eq(total_rev - total_disc)
+            
+          expect(@invoice_4.discounted_revenue).to eq(total_rev - total_disc)
         end
       end
     end 
