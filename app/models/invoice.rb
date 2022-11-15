@@ -24,16 +24,18 @@ class Invoice < ApplicationRecord
     invoice_items.sum('unit_price * quantity')
   end
   
-  def discounted_revenue
+  def total_discount
     inner_query = self.invoice_items
     .select("max(bulk_discounts.discount_percentage) as disc_pct, avg(invoice_items.quantity) as qty, avg(invoice_items.unit_price) as price")
     .joins(item: [merchant: :bulk_discounts])
     .where("invoice_items.quantity >= bulk_discounts.minimum_item_quantity")
     .group("invoice_items.id")
     
-    InvoiceItem.unscoped.select("sum( (1 - disc_pct) * qty * price) as total").from(inner_query).take.total.to_f
-    
-    # SQL:
-    # select sum( (1 - disc_pct) * qty * price) from (select max(bulk_discounts.discount_percentage) as disc_pct, avg(invoice_items.quantity) as qty, avg(invoice_items.unit_price) as price from invoice_items join items on items.id = invoice_items.item_id join merchants on merchants.id = items.merchant_id join bulk_discounts on bulk_discounts.merchant_id = merchants.id where invoice_items.invoice_id = 608 and (invoice_items.quantity >= bulk_discounts.minimum_item_quantity) group by invoice_items.id) as sub_q;
+    InvoiceItem.unscoped.select("sum( disc_pct * qty * price) as total")
+    .from(inner_query).take.total.to_f
+  end
+  
+  def discounted_revenue
+    self.total_revenue - self.total_discount
   end
 end

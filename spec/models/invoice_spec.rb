@@ -90,14 +90,28 @@ RSpec.describe Invoice, type: :model do
         end 
       end
       
-      xdescribe 'total_discount' do
-        it "returns the total discounted revenue for all items that qualify for
+      describe 'total_discount' do
+        it "returns the total discount applied for all items that qualify for
         a discount on an invoice." do
           discount1 = create(:bulk_discount, minimum_item_quantity: 250, discount_percentage: 0.1, merchant_id: @merchant_1.id)
           discount2 = create(:bulk_discount, minimum_item_quantity: 700, discount_percentage: 0.2, merchant_id: @merchant_1.id)
           discount3 = create(:bulk_discount, minimum_item_quantity: 500, discount_percentage: 0.3, merchant_id: @merchant_2.id)
-          
-          expect(@invoice_4.total_discount).to eq(2_535_345.40)
+          total_disc = ([@invoice_item_1.quantity * @invoice_item_1.unit_price * discount2.discount_percentage, 
+            @invoice_item_3.quantity * @invoice_item_3.unit_price * discount3.discount_percentage]).sum
+          expect(@invoice_4.total_discount).to eq(total_disc)
+        end
+      end
+      
+      describe 'discounted_revenue' do
+        it "returns the total_revenue of an invoice less the total_discount" do
+          discount2 = create(:bulk_discount, minimum_item_quantity: 700, discount_percentage: 0.2, merchant_id: @merchant_1.id)
+          discount3 = create(:bulk_discount, minimum_item_quantity: 500, discount_percentage: 0.3, merchant_id: @merchant_2.id)
+          total_disc = ([@invoice_item_1.quantity * @invoice_item_1.unit_price * discount2.discount_percentage, 
+            @invoice_item_3.quantity * @invoice_item_3.unit_price * discount3.discount_percentage]).sum
+          total_rev = ([@invoice_item_1.quantity * @invoice_item_1.unit_price, 
+            @invoice_item_2.quantity * @invoice_item_2.unit_price,
+            @invoice_item_3.quantity * @invoice_item_3.unit_price]).sum
+            expect(@invoice_4.discounted_revenue).to eq(total_rev - total_disc)
         end
       end
     end 
