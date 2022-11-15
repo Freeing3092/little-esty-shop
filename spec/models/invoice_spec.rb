@@ -86,6 +86,17 @@ RSpec.describe Invoice, type: :model do
           expect(@invoice_6.total_revenue).to_not eq(4311)
         end 
       end
+      
+      describe 'discounted_revenue' do
+        it "returns the total discounted revenue for all items that qualify for
+        a discount on an invoice." do
+          discount1 = create(:bulk_discount, minimum_item_quantity: 250, discount_percentage: 0.1, merchant_id: @merchant_1.id)
+          discount2 = create(:bulk_discount, minimum_item_quantity: 700, discount_percentage: 0.2, merchant_id: @merchant_1.id)
+          discount3 = create(:bulk_discount, minimum_item_quantity: 500, discount_percentage: 0.3, merchant_id: @merchant_2.id)
+          
+          expect(@invoice_4.discounted_revenue).to eq(2_535_345.40)
+        end
+      end
     end 
   end 
 end
