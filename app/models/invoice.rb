@@ -19,9 +19,9 @@ class Invoice < ApplicationRecord
   def self.incomplete_invoices
     self.joins(:invoice_items).where.not(invoice_items: {status: 2}).distinct.order(:created_at)
   end
-  # BUG: Total revenue should be based off the invoice_item unit_price
+  
   def total_revenue
-    items.sum("unit_price")
+    invoice_items.sum('unit_price * quantity')
   end
   
   def discounted_revenue
