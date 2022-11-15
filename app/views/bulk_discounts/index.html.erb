@@ -1,6 +1,15 @@
 <%= render partial: 'shared/navbar', locals: { merchant_name: @merchant.name }  %>
 <%= link_to "Create New Discount", "/merchants/#{@merchant.id}/bulk_discounts/new" %>
 
+<div id="upcoming-holidays">
+  <h3>Upcoming Holidays</h3>
+  <ol>
+    <% @upcoming_holidays.first(3).each do |holiday| %>
+      <li> <%= "Holiday: #{holiday.name} --- Date: #{holiday.date}" %> </li>
+    <% end %>
+  </ol>
+</div>
+
 
 <div id="merchant-discounts">
   <h3>Bulk Discounts:</h3>
