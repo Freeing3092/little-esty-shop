@@ -70,22 +70,24 @@ RSpec.describe "Admin Invoices Show Page", type: :feature do
     @transaction_18 = @invoice_18.transactions.create!(credit_card_number: 4436110257010678, result: "failed")
     @transaction_19 = @invoice_19.transactions.create!(credit_card_number: 4332881798016631, result: "failed")
     @transaction_20 = @invoice_20.transactions.create!(credit_card_number: 4886443388914010, result: "success")
+    
+    @discount1 = create(:bulk_discount, minimum_item_quantity: 700, discount_percentage: 0.1, merchant_id: @merchant_1.id)
+    @discount2 = create(:bulk_discount, minimum_item_quantity: 500, discount_percentage: 0.2, merchant_id: @merchant_2.id)
+    
+    visit "admin/invoices/#{@invoice_1.id}"
   end
 
   it "the show page has the information related to the specified invoice, including invoice id, invoice status,
     invoice created_at date in the format 'Monday, July 18, 2019', customer first and last name" do
-      visit "admin/invoices/#{@invoice_1.id}"
-      
-      expect(page).to have_content("Invoice #: #{@invoice_1.id}")
-      expect(page).to have_content("#{@invoice_1.status}")
-      expect(page).to have_content("Created On: #{@invoice_1.formatted_date}")
-      expect(page).to have_content("Customer: #{@invoice_1.customer.first_name} #{@invoice_1.customer.last_name}")
+    expect(page).to have_content("Invoice #: #{@invoice_1.id}")
+    expect(page).to have_content("#{@invoice_1.status}")
+    expect(page).to have_content("Created On: #{@invoice_1.formatted_date}")
+    expect(page).to have_content("Customer: #{@invoice_1.customer.first_name} #{@invoice_1.customer.last_name}")
 
-      expect(page).to have_no_content("Invoice #: #{@invoice_2.id}")
+    expect(page).to have_no_content("Invoice #: #{@invoice_2.id}")
   end 
 
   it "should list the total revenue that will be generated from the specified invoice" do
-    visit "admin/invoices/#{@invoice_1.id}"
     invoice_1_rev = ([@invoice_item_1.unit_price * @invoice_item_1.quantity, @invoice_item_2.unit_price * @invoice_item_2.quantity, @invoice_item_3.unit_price * @invoice_item_3.quantity]).sum/100.round(2)
     result = '31,697.08'
     expect(page).to have_content("Total Revenue: $#{result}")
@@ -94,23 +96,19 @@ RSpec.describe "Admin Invoices Show Page", type: :feature do
 
   it "should have all of the items on the invoice including the item name, quantity of item
     ordered, the price the item sold for and the invoice_item status" do
-      visit "admin/invoices/#{@invoice_1.id}"
+    expect(page).to have_css("table")
 
-      expect(page).to have_css("table")
+    within("#invoice-#{@invoice_item_1.item.id}") do
+      expect(page).to have_content(@invoice_item_1.item.name)
+      expect(page).to have_content(@invoice_item_1.quantity)
+      expect(page).to have_content("$4,291.00")
+      expect(page).to have_content(@invoice_item_1.status)
+    end
 
-      within("#invoice-#{@invoice_item_1.item.id}") do
-        expect(page).to have_content(@invoice_item_1.item.name)
-        expect(page).to have_content(@invoice_item_1.quantity)
-        expect(page).to have_content("$4,291.00")
-        expect(page).to have_content(@invoice_item_1.status)
-      end
-
-      expect(page).to have_no_content(@invoice_item_6.item.name)
+    expect(page).to have_no_content(@invoice_item_6.item.name)
   end
 
   it "the invoice status is a select field, and the invoice's current status is selected" do
-    visit "admin/invoices/#{@invoice_1.id}"
-
     within("#invoice-#{@invoice_1.id}") do
       expect(page).to have_field("status")
       expect(page).to have_content("completed")
@@ -122,21 +120,30 @@ RSpec.describe "Admin Invoices Show Page", type: :feature do
   it "when the Update Invoice Status button is clicked, the item status will be
     updated with the status chosen and the user will be redirected back to the
     admin invoice show page" do
-      visit "admin/invoices/#{@invoice_1.id}"
+    within("#invoice-#{@invoice_1.id}") do
+      expect(@invoice_1.status).to eq("completed")
 
-      within("#invoice-#{@invoice_1.id}") do
-        expect(@invoice_1.status).to eq("completed")
+      page.select("in progress", from: :status)
+      click_button "Update Invoice Status"
 
-        page.select("in progress", from: :status)
-        click_button "Update Invoice Status"
+      expect(current_path).to eq(admin_invoice_path(@invoice_1.id))
+      expect(page).to have_content(@invoice_1.status)
 
-        expect(current_path).to eq(admin_invoice_path(@invoice_1.id))
-        expect(page).to have_content(@invoice_1.status)
+      @current_invoice = Invoice.order(:updated_at).last
 
-        @current_invoice = Invoice.order(:updated_at).last
-
-        expect(@current_invoice.id).to eq(@invoice_1.id)
-        expect(@current_invoice.status).to eq("in progress")
-      end
+      expect(@current_invoice.id).to eq(@invoice_1.id)
+      expect(@current_invoice.status).to eq("in progress")
+    end
+  end
+  
+  it "I see the total discounted revenue from this invoice which includes bulk
+  discounts in the calculation" do
+    total_rev = [@invoice_item_1.quantity * @invoice_item_1.unit_price, 
+      @invoice_item_2.quantity * @invoice_item_2.unit_price, 
+      @invoice_item_3.quantity * @invoice_item_3.unit_price].sum
+    total_disc = [@invoice_item_1.quantity * @invoice_item_1.unit_price * @discount1.discount_percentage,
+      @invoice_item_3.quantity * @invoice_item_3.unit_price * @discount2.discount_percentage].sum
+    result = '$28,524.78' # 31_697.08 - 3_172.29
+    expect(page).to have_content("Total Discounted Revenue: #{result}")
   end
 end 
