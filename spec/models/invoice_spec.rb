@@ -93,21 +93,43 @@ RSpec.describe Invoice, type: :model do
         end 
       end
       
-      describe 'total_discount' do
+      describe 'total_merchant_discount' do
         it "returns the total discount applied for all items that qualify for
-        a discount on an invoice." do
+        a discount on an invoice for items relating to a single merchant." do
           total_disc = @invoice_item_1.quantity * @invoice_item_1.unit_price * @discount2.discount_percentage
-          expect(@invoice_4.total_discount(@merchant_1.id)).to eq(total_disc)
+          expect(@invoice_4.total_merchant_discount(@merchant_1.id)).to eq(total_disc)
         end
       end
       
-      describe 'discounted_revenue' do
-        it "returns the total_revenue of an invoice less the total_discount" do
+      describe 'merchant_discounted_revenue' do
+        it "returns the total_revenue of an invoice less the total_merchant_discount" do
           total_disc = @invoice_item_1.quantity * @invoice_item_1.unit_price * @discount2.discount_percentage
           total_rev = ([@invoice_item_1.quantity * @invoice_item_1.unit_price, 
             @invoice_item_2.quantity * @invoice_item_2.unit_price]).sum
             
-          expect(@invoice_4.discounted_revenue(@merchant_1, @invoice_4.id)).to eq(total_rev - total_disc)
+          expect(@invoice_4.merchant_discounted_revenue(@merchant_1, @invoice_4.id)).to eq(total_rev - total_disc)
+        end
+      end
+      
+      describe 'total_discount' do
+        it "returns the total discount applied for all items that qualify for
+        a discount on an invoice for all merchants." do
+          total_disc = [@invoice_item_1.quantity * @invoice_item_1.unit_price * @discount2.discount_percentage,
+          @invoice_item_3.quantity * @invoice_item_3.unit_price * @discount3.discount_percentage].sum
+          expect(@invoice_4.total_discount).to eq(total_disc)
+        end
+      end
+      
+      describe 'total_discounted_revenue' do
+        it "returns the total_revenue of an invoice less the total_discount for
+        all merchants" do
+          total_disc = [@invoice_item_1.quantity * @invoice_item_1.unit_price * @discount2.discount_percentage,
+            @invoice_item_3.quantity * @invoice_item_3.unit_price * @discount3.discount_percentage].sum
+          total_rev = ([@invoice_item_1.quantity * @invoice_item_1.unit_price, 
+            @invoice_item_2.quantity * @invoice_item_2.unit_price,
+            @invoice_item_3.quantity * @invoice_item_3.unit_price]).sum
+            
+          expect(@invoice_4.total_discounted_revenue).to eq(total_rev - total_disc)
         end
       end
     end 
