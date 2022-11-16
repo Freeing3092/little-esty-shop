@@ -3,6 +3,8 @@ class Invoice < ApplicationRecord
   has_many :invoice_items
   has_many :items, through: :invoice_items
   has_many :transactions
+  has_many :merchants, through: :items
+  has_many :bulk_discounts, through: :merchants
 
   enum status: [ :completed, :cancelled, "in progress" ]
 
@@ -17,8 +19,39 @@ class Invoice < ApplicationRecord
   def self.incomplete_invoices
     self.joins(:invoice_items).where.not(invoice_items: {status: 2}).distinct.order(:created_at)
   end
-
+  
   def total_revenue
-    items.sum("unit_price")
+    invoice_items.sum('unit_price * quantity')
+  end
+  
+  def total_merchant_discount(merchant_id)
+    inner_query = self.invoice_items
+    .select("max(bulk_discounts.discount_percentage) as disc_pct, avg(invoice_items.quantity) as qty, avg(invoice_items.unit_price) as price")
+    .joins(item: [merchant: :bulk_discounts])
+    .where("invoice_items.quantity >= bulk_discounts.minimum_item_quantity")
+    .where("merchants.id = ?", merchant_id)
+    .group("invoice_items.id")
+    
+    InvoiceItem.unscoped.select("sum( disc_pct * qty * price) as total")
+    .from(inner_query).take.total.to_f
+  end
+  
+  def total_discount
+    inner_query = self.invoice_items
+    .select("max(bulk_discounts.discount_percentage) as disc_pct, avg(invoice_items.quantity) as qty, avg(invoice_items.unit_price) as price")
+    .joins(item: [merchant: :bulk_discounts])
+    .where("invoice_items.quantity >= bulk_discounts.minimum_item_quantity")
+    .group("invoice_items.id")
+    
+    InvoiceItem.unscoped.select("sum( disc_pct * qty * price) as total")
+    .from(inner_query).take.total.to_f
+  end
+  
+  def merchant_discounted_revenue(merchant, invoice_id)
+    merchant.invoice_revenue(invoice_id) - self.total_merchant_discount(merchant.id)
+  end
+  
+  def total_discounted_revenue
+    self.total_revenue - self.total_discount
   end
 end

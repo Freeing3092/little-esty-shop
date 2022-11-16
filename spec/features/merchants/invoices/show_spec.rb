@@ -97,4 +97,10 @@ RSpec.describe 'the merchant invoices show page' do
       expect(page).to have_content("N/A")
     end
   end
+  
+  it "I see the total discounted revenue for my merchant from this invoice
+  which includes bulk discounts in the calculation" do
+    visit "/merchants/#{@merchant1.id}/invoices/#{@invoice1.id}"
+    expect(page).to have_content("Total Discounted Revenue: $51.90")
+  end
 end
