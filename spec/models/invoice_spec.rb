@@ -96,21 +96,18 @@ RSpec.describe Invoice, type: :model do
       describe 'total_discount' do
         it "returns the total discount applied for all items that qualify for
         a discount on an invoice." do
-          total_disc = ([@invoice_item_1.quantity * @invoice_item_1.unit_price * @discount2.discount_percentage, 
-            @invoice_item_3.quantity * @invoice_item_3.unit_price * @discount3.discount_percentage]).sum
-          expect(@invoice_4.total_discount).to eq(total_disc)
+          total_disc = @invoice_item_1.quantity * @invoice_item_1.unit_price * @discount2.discount_percentage
+          expect(@invoice_4.total_discount(@merchant_1.id)).to eq(total_disc)
         end
       end
       
       describe 'discounted_revenue' do
         it "returns the total_revenue of an invoice less the total_discount" do
-          total_disc = ([@invoice_item_1.quantity * @invoice_item_1.unit_price * @discount2.discount_percentage, 
-            @invoice_item_3.quantity * @invoice_item_3.unit_price * @discount3.discount_percentage]).sum
+          total_disc = @invoice_item_1.quantity * @invoice_item_1.unit_price * @discount2.discount_percentage
           total_rev = ([@invoice_item_1.quantity * @invoice_item_1.unit_price, 
-            @invoice_item_2.quantity * @invoice_item_2.unit_price,
-            @invoice_item_3.quantity * @invoice_item_3.unit_price]).sum
+            @invoice_item_2.quantity * @invoice_item_2.unit_price]).sum
             
-          expect(@invoice_4.discounted_revenue).to eq(total_rev - total_disc)
+          expect(@invoice_4.discounted_revenue(@merchant_1, @invoice_4.id)).to eq(total_rev - total_disc)
         end
       end
     end 
